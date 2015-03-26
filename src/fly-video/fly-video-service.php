@@ -31,6 +31,31 @@ class FlyVideoService
     return $fileDocument;
   }     
   
+  
+  
+  public function getCachedVideoData($videoUrl, $flySpec)
+  {
+    try
+    {
+      $gridFile = $this->getFlyGridFile($videoUrl, $flySpec);
+      $name='$id';
+      return array(
+        'gridFileId' => $gridFile->file['_id']->$name,
+        'collectionName' => 'fly_service',
+        'mongoServerIp' => $_SERVER['SERVER_NAME'],
+        'done' => 1
+      );
+    }
+    catch (\Exception $e)
+    {
+      error_log('send back default video file with message to wait: '.$e->getMessage());
+      return array(
+        'done' => 0
+      );
+    }
+    
+  }
+  
   protected function createAndMergeFly($idUrl, $flySpec)
   {
     $timer = $this->profiler->startTimer('creating new fly');
@@ -137,7 +162,7 @@ class FlyVideoService
 //    $uniqueFileNameJpg = $uniqueFileName.'.jpg';
     
 
-    $command = "./../application/scripts/convert_".$document['specification']['format']." $sourceVideoFile $targetVideoFile";
+    $command = dirname(__FILE__)."/scripts/convert_".$document['specification']['format']." $sourceVideoFile $targetVideoFile";
     
     error_log("executing ".$command);
     exec($command);
