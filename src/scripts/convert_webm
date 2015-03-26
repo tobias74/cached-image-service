@@ -1,0 +1,23 @@
+#!/bin/bash
+ 
+if [[ $1 && $2 ]]
+then
+    filename=$(basename "$1")
+    filename=${filename%.*}
+    directory=$(dirname "$1")
+    targetBasename=$(basename "$2")
+    targetDirectory=$(dirname "$2")
+    
+     
+ 
+    echo "Converting $filename to webm"
+    avconv -i "$1" -acodec libvorbis -ac 2 -ab 192k -ar 44100 -b:v 2000k "$targetDirectory/$targetBasename"
+    echo "Finished webm"
+ 
+
+    echo "All Done!"
+else
+    echo "Usage: [filename] [targetFilename]"
+fi
+
+

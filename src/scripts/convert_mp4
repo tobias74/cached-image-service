@@ -1,0 +1,27 @@
+#!/bin/bash
+ 
+if [[ $1 && $2 ]]
+then
+    filename=$(basename "$1")
+    filename=${filename%.*}
+    directory=$(dirname "$1")
+    targetBasename=$(basename "$2")
+    targetDirectory=$(dirname "$2")
+    
+     
+ 
+    echo "Converting $filename to h264"
+    avconv -i "$1" -acodec libvo_aacenc -ab 192k -vcodec libx264 -level 21 -refs 2 -b:v 2000k -threads 0 "$targetDirectory/$targetBasename"
+    echo "Finished h264"
+
+
+
+
+
+ 
+    echo "All Done!"
+else
+    echo "Usage: [filename] [targetFilename]"
+fi
+
+

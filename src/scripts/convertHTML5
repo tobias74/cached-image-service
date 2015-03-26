@@ -1,0 +1,52 @@
+#!/bin/bash
+ 
+if [[ $1 && $2 ]]
+then
+    filename=$(basename "$1")
+    filename=${filename%.*}
+    directory=$(dirname "$1")
+    targetBasename=$(basename "$2")
+    targetDirectory=$(dirname "$2")
+    
+     
+    duration=$(ffmpeg -i "$1" 2>&1 | grep Duration | awk '{print $2}' | tr -d ,)
+    minutes=${duration%:*}
+    hours=${minutes%:*}
+    minutes=${minutes##*:}
+    seconds=${duration##*:}
+    seconds=${seconds%.*}
+ 
+    hours=$((hours*3600))
+    minutes=$((minutes*60))
+ 
+    total=$(expr $hours + $minutes + $seconds)
+    number=$RANDOM
+    let "number %= $total"
+ 
+
+
+    echo "Converting $filename to ogv"
+    avconv -i "$1" -acodec libvorbis -ac 2 -ab 192k -ar 44100 -b:v 2000k "$targetDirectory/$targetBasename.ogv"
+    echo "Finished ogv"
+ 
+    echo "Converting $filename to webm"
+    avconv -i "$1" -acodec libvorbis -ac 2 -ab 192k -ar 44100 -b:v 2000k "$targetDirectory/$targetBasename.webm"
+    echo "Finished webm"
+ 
+    echo "Converting $filename to h264"
+    avconv -i "$1" -acodec libvo_aacenc -ab 192k -vcodec libx264 -level 21 -refs 2 -b:v 2000k -threads 0 "$targetDirectory/$targetBasename.mp4"
+    echo "Finished h264"
+
+
+    echo "Generating thumbnail"
+    avconv -i "$1" -deinterlace -an -ss $number -t 00:00:01 -r 1 -y -vcodec mjpeg -f mjpeg "$targetDirectory/$targetBasename.jpg" 2>&1
+    echo "Finished thumbnail"
+
+
+ 
+    echo "All Done!"
+else
+    echo "Usage: [filename] [targetFilename]"
+fi
+
+
