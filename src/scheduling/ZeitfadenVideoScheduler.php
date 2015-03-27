@@ -1,7 +1,8 @@
 <?php
 namespace CachedImageService;
 
-class ZeitfadenVideoScheduler
+
+class OldVideoScheduler
 {
   public function scheduleVideoTranscoding($id)
   {
@@ -15,3 +16,5 @@ class ZeitfadenVideoScheduler
   } 
   
 }
+
+
