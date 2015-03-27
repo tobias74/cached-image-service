@@ -1,4 +1,5 @@
 <?php 
+namespace CachedImageService;
 
 class FlyVideoService
 {
@@ -65,6 +66,16 @@ class FlyVideoService
   }
   
   
+  public function setScheduler($scheduler)
+  {
+    $this->scheduler = $scheduler;
+  }
+  
+  protected function getScheduler()
+  {
+    return $this->scheduler;
+  }
+  
   public function setProfiler($profiler)
   {
     if (!is_object($profiler))
@@ -120,22 +131,14 @@ class FlyVideoService
     );
     
     $this->collection->insert($document);
-    $this->scheduleTranscoding($document);
-          
+    //$this->scheduleTranscoding($document);
+    $this->getScheduler()->scheduleVideoTranscoding($document['_id']);      
     $timer->stop();
         
         
     return $document;
   }
 
-  protected function scheduleTranscoding($document)
-  {
-    $schedulerUrl = 'http://scheduler.zeitfaden.com/task/schedule/queueName/videoFlyService?url=';
-    $callbackUrl = 'flyservice.zeitfaden.com/video/transcode/flyId/'.$document['_id'].'/format/'.$document['specification']['format'];
-    error_log($schedulerUrl.$callbackUrl);
-    $r = new HttpRequest($schedulerUrl.$callbackUrl, HttpRequest::METH_GET);
-    $r->send();
-  }
   
   
   public function performTranscoding($flyId)
@@ -189,90 +192,6 @@ class FlyVideoService
     
   }
 
-  
-  public function deleteFlysForFile($file)
-  {
-    $flys = $this->flyRepository->getFlysForFile($file->getId(), $file->getUserId());
-    
-    foreach ($flys as $fly)
-    {
-      
-      foreach ($fly->getFlyPaths() as $flyPath)
-      {
-        $fileName = $this->getShardFlyFolder($fly->getUserId()).$flyPath;
-
-        if (!$this->systemService->file_exists($fileName))
-        {
-          throw new Exception("why does this file not exist?.");
-        }
-        else
-        {
-          $this->systemService->unlink($fileName);
-        }
-                
-      }
-      
-      $this->flyRepository->delete($fly);
-            
-    }
-  }
-  
-  
-  //this is the optimized version:
-  public function getMultipleUrlsForVideos($files, $flySpec)
-  {
-    $urls = array();
-    $assocFiles = array();
-    
-    foreach($files as $file)
-    {
-      $assocFiles[$file->getId()] = $file;
-    }
-    
-    $flys = $this->getMultipleFlys($files, $flySpec);
-    
-    foreach($flys as $fileId => $fly)
-    {
-      if ($assocFiles[$fileId]->getUserId() != $fly->getUserId())
-      {
-        throw new ErrorException('we would expect the corresponding userId in the fly'); 
-      }
-      
-      $urls[$fileId]['mp4'] = "http://".$this->getShard($fly->getUserId())->getFlyFolderUrl().$fly->getFlyVideoPathMp4(); 
-      $urls[$fileId]['ogv'] = "http://".$this->getShard($fly->getUserId())->getFlyFolderUrl().$fly->getFlyVideoPathOgv(); 
-      $urls[$fileId]['webm'] = "http://".$this->getShard($fly->getUserId())->getFlyFolderUrl().$fly->getFlyVideoPathWebm(); 
-      $urls[$fileId]['jpg'] = "http://".$this->getShard($fly->getUserId())->getFlyFolderUrl().$fly->getFlyVideoPathJpg(); 
-    }
-    
-    return $urls;
-    
-  }
-  
-  
-  public function getUrlForVideo($file, $flySpec)
-  {
-    $timer = $this->profiler->startTimer('getting fly video');
-    $fly = $this->getFly($file, $flySpec);
-    $timer->stop();
-    
-    $url = array();
-    $url['mp4'] = "http://".$this->getShard($file->getUserId())->getFlyFolderUrl().$fly->getFlyVideoPathMp4();
-    $url['ogv'] = "http://".$this->getShard($file->getUserId())->getFlyFolderUrl().$fly->getFlyVideoPathOgv();
-    $url['webm'] = "http://".$this->getShard($file->getUserId())->getFlyFolderUrl().$fly->getFlyVideoPathWebm();
-    $url['jpg'] = "http://".$this->getShard($file->getUserId())->getFlyFolderUrl().$fly->getFlyVideoPathJpg();
-    
-    return $url; 
-  }
-  
-  
-  
-  
-  
-  
-  
-  
-
-  
   
 }
 

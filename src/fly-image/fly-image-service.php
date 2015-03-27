@@ -1,7 +1,8 @@
 <?php 
+namespace CachedImageService;
 
 
-class ZeitfadenFlyImageService 
+class FlyImageService 
 {
 	
 
