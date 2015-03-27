@@ -6,10 +6,11 @@ class FlyImageService
 {
 	
 
-  public function __construct()
+  public function __construct($hash)
   {
+    $this->mongoDbHost = $hash['mongo_db_host'];
     $this->collectionName = 'fly_images';
-    $this->mongoConnection = new \MongoClient();
+    $this->mongoConnection = new \MongoClient($hash['mongo_db_host']);
     $this->mongoDb = $this->mongoConnection->fly_service;
     
     $name = $this->collectionName;
@@ -32,8 +33,8 @@ class FlyImageService
       $name='$id';
       return array(
         'gridFileId' => $gridFile->file['_id']->$name,
-        'collectionName' => 'fly_service',
-        'mongoServerIp' => $_SERVER['SERVER_NAME'],
+        'mongoDbName' => 'fly_service',
+        'mongoServerIp' => $this->mongoDbHost,
         'done' => 1
       );
     }
@@ -169,7 +170,7 @@ class FlyImageService
 	{
     $timeoutInSeconds = 15;
     
-		$date = new DateTime();
+		$date = new \DateTime();
     $currentTimestamp = $date->getTimestamp();
     
 		$serializedSpec = $flySpec->serialize();
@@ -191,8 +192,8 @@ class FlyImageService
         {
           $timeout = 1;
           error_log('it is running... now making up the timer');
-          $base = new EventBase();
-          $e = Event::timer($base,function($timeout) use (&$e){
+          $base = new \EventBase();
+          $e = \Event::timer($base,function($timeout) use (&$e){
             error_log('inside the timer, after 1 second.');
             $e->delTimer();
           }, $timeout);
@@ -268,7 +269,7 @@ class FlyImageService
 		
     try
     {
-			$origi = imagecreatefromstring(file_get_contents($imageIdUrl));
+			$origi = \imagecreatefromstring(\file_get_contents($imageIdUrl));
     }
     catch (Exception $e)
     {
@@ -284,8 +285,8 @@ class FlyImageService
         
     if ($flySpec->isOriginalSize())
     {
-      $newWidth = imagesx($origi);
-      $newHeight = imagesy($origi);
+      $newWidth = \imagesx($origi);
+      $newHeight = \imagesy($origi);
       $im = $origi;
       
     } 
@@ -295,8 +296,8 @@ class FlyImageService
       {
         case FlyImageSpecification::TOUCH_BOX_FROM_INSIDE:
           
-          $originalWidth = imagesx($origi);
-          $originalHeight = imagesy($origi);
+          $originalWidth = \imagesx($origi);
+          $originalHeight = \imagesy($origi);
           
           $newWidth = $flySpec->getMaximumWidth();
           $newHeight = (int) (($flySpec->getMaximumWidth() / $originalWidth) * $originalHeight);
@@ -306,8 +307,8 @@ class FlyImageService
               $newWidth = (int) (($flySpec->getMaximumHeight() / $originalHeight) * $originalWidth);
           }
     
-          $im = imagecreatetruecolor($newWidth, $newHeight);
-          imagecopyresampled($im,$origi,0,0,0,0, $newWidth, $newHeight, $originalWidth ,$originalHeight);
+          $im = \imagecreatetruecolor($newWidth, $newHeight);
+          \imagecopyresampled($im,$origi,0,0,0,0, $newWidth, $newHeight, $originalWidth ,$originalHeight);
           
           
           break;
@@ -316,8 +317,8 @@ class FlyImageService
   
         case FlyImageSpecification::SQUARE:
           
-          $originalWidth = imagesx($origi);
-          $originalHeight = imagesy($origi);
+          $originalWidth = \imagesx($origi);
+          $originalHeight = \imagesy($origi);
           
           
           // first make it square
@@ -328,8 +329,8 @@ class FlyImageService
             $targetWidth = $originalWidth;
             $targetHeight = $originalWidth;
             
-            $centerY = round($originalHeight/2);
-            $sourceY = $centerY - round($targetHeight/2);
+            $centerY = \round($originalHeight/2);
+            $sourceY = $centerY - \round($targetHeight/2);
             $sourceX = 0; 
             $sourceWidth = $originalWidth;
             $sourceHeight = $originalWidth;
@@ -341,8 +342,8 @@ class FlyImageService
             $targetHeight = $originalHeight;
             $targetWidth = $originalHeight;
             
-            $centerX = round($originalWidth/2);
-            $sourceX = $centerX - round($targetWidth/2);
+            $centerX = \round($originalWidth/2);
+            $sourceX = $centerX - \round($targetWidth/2);
             $sourceY = 0; 
             $sourceWidth = $originalHeight;
             $sourceHeight = $originalHeight;
@@ -350,8 +351,8 @@ class FlyImageService
           }
           
     
-          $im = imagecreatetruecolor($targetWidth, $targetHeight);
-          imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
+          $im = \imagecreatetruecolor($targetWidth, $targetHeight);
+          \imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
                   
           
           
@@ -422,8 +423,8 @@ class FlyImageService
   
           $newAspectRatio = $maxWidth/$maxHeight;
           
-          $originalWidth = imagesx($origi);
-          $originalHeight = imagesy($origi);
+          $originalWidth = \imagesx($origi);
+          $originalHeight = \imagesy($origi);
           $originalAspectRatio = $originalWidth/$originalHeight;
           
           if ($originalAspectRatio > $newAspectRatio)
@@ -433,9 +434,9 @@ class FlyImageService
             $targetHeight = $originalHeight;
             
             $faktor = $newAspectRatio/$originalAspectRatio;
-            $targetWidth = round($originalWidth*$faktor);
+            $targetWidth = \round($originalWidth*$faktor);
             $cutX = $originalWidth - $targetWidth;
-            $sourceX = round($cutX/2);
+            $sourceX = \round($cutX/2);
             $sourceY = 0;
             $targetX = 0;
             $targetY = 0;
@@ -447,10 +448,10 @@ class FlyImageService
             $targetWidth = $originalWidth;
             
             $faktor = $originalAspectRatio/$newAspectRatio;
-            $targetHeight = round($originalHeight*$faktor);
+            $targetHeight = \round($originalHeight*$faktor);
             $cutY = $originalHeight - $targetHeight;
             $sourceX = 0;
-            $sourceY = round($cutY/2);
+            $sourceY = \round($cutY/2);
             $targetX = 0;
             $targetY = 0;
           }
@@ -458,8 +459,8 @@ class FlyImageService
           $sourceHeight = $targetHeight;
           $sourceWidth = $targetWidth;
            
-          $im = imagecreatetruecolor($maxWidth, $maxHeight);
-          imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $maxWidth, $maxHeight, $sourceWidth, $sourceHeight);
+          $im = \imagecreatetruecolor($maxWidth, $maxHeight);
+          \imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $maxWidth, $maxHeight, $sourceWidth, $sourceHeight);
   
   
           $newWidth = $flySpec->getMaximumWidth();
@@ -470,7 +471,7 @@ class FlyImageService
   
           
         default:
-          throw new Exception("no fly image mode chosen?".$flySpec->getMode()  );
+          throw new \Exception("no fly image mode chosen?".$flySpec->getMode()  );
           
           
           
@@ -594,7 +595,7 @@ class ImageCacheOptions
 {
   public function setTimetoLive($ttl)
   {
-    $date = new DateTime();
+    $date = new \DateTime();
 
     $this->timeToLive = $ttl;
     $this->expirationTimestamp = $date->getTimestamp() + $this->timeToLive;

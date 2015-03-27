@@ -4,10 +4,11 @@ namespace CachedImageService;
 class FlyVideoService
 {
   
-  public function __construct()
+  public function __construct($hash)
   {
+    $this->mongoDbHost = $hash['mongo_db_host'];
     $this->collectionName = 'fly_videos';
-    $this->mongoConnection = new \MongoClient();
+    $this->mongoConnection = new \MongoClient($hash['mongo_db_host']);
     $this->mongoDb = $this->mongoConnection->fly_service;
     
     $name = $this->collectionName;
@@ -42,8 +43,8 @@ class FlyVideoService
       $name='$id';
       return array(
         'gridFileId' => $gridFile->file['_id']->$name,
-        'collectionName' => 'fly_service',
-        'mongoServerIp' => $_SERVER['SERVER_NAME'],
+        'mongoDbName' => 'fly_service',
+        'mongoServerIp' => $this->mongoDbHost,
         'done' => 1
       );
     }
@@ -145,7 +146,7 @@ class FlyVideoService
   {
    
       
-    $document = $this->collection->findOne(array('_id'=>new MongoId($flyId)));
+    $document = $this->collection->findOne(array('_id'=>new \MongoId($flyId)));
     
     $sourceVideoFile = tempnam('/tmp','flysource');
     
