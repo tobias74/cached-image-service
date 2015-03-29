@@ -7,12 +7,13 @@ class FlyVideoService
   public function __construct($hash)
   {
     $this->mongoDbHost = $hash['mongo_db_host'];
-    $this->collectionName = 'fly_videos';
-    $this->mongoConnection = new \MongoClient($hash['mongo_db_host']);
-    $this->mongoDb = $this->mongoConnection->fly_service;
+    $this->mongoDbName = $hash['mongo_db_name'];
     
-    $name = $this->collectionName;
-    $this->collection = $this->mongoDb->$name;
+    $this->collectionName = 'fly_videos';
+    $this->mongoConnection = new \MongoClient($this->mongoDbHost);
+    $this->mongoDb = $this->mongoConnection->selectDB($this->mongoDbName);
+    
+    $this->collection = new \MongoCollection($this->mongoDb, $this->collectionName);
     
     $this->collection->ensureIndex(array('serialized_specification' => 1));
         
@@ -43,7 +44,7 @@ class FlyVideoService
       $name='$id';
       return array(
         'gridFileId' => $gridFile->file['_id']->$name,
-        'mongoDbName' => 'fly_service',
+        'mongoDbName' => $this->mongoDbName,
         'mongoServerIp' => $this->mongoDbHost,
         'done' => 1
       );
