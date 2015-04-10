@@ -268,10 +268,10 @@ class FlyImageService
 	protected function createFly($imageIdUrl, $flySpec, $cacheOptions)
 	{
 		$timer = $this->profiler->startTimer('creating new fly-images');
-		
     try
     {
 			$origi = \imagecreatefromstring(\file_get_contents($imageIdUrl));
+      $exif = \exif_read_data($imageIdUrl);
     }
     catch (Exception $e)
     {
@@ -464,6 +464,33 @@ class FlyImageService
           $im = \imagecreatetruecolor($maxWidth, $maxHeight);
           \imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $maxWidth, $maxHeight, $sourceWidth, $sourceHeight);
   
+          if (!empty($exif['Orientation'])) 
+          {
+            switch ($exif['Orientation']) 
+            {
+              case 3:
+                  $angle = 180 ;
+                  break;
+          
+              case 6:
+                  $angle = -90;
+                  break;
+          
+              case 8:
+                  $angle = 90; 
+                  break;
+              default:
+                  $angle = 0;
+                  break;
+            }   
+            
+            if ($angle !== 0)
+            {
+              $im = imagerotate($im, $angle, 0);
+            }
+            
+          }    
+        
   
           $newWidth = $flySpec->getMaximumWidth();
           $newHeight = $flySpec->getMaximumHeight();
