@@ -8,26 +8,11 @@ then
     targetBasename=$(basename "$2")
     targetDirectory=$(dirname "$2")
     
-     
-    duration=$(ffmpeg -i "$1" 2>&1 | grep Duration | awk '{print $2}' | tr -d ,)
-    minutes=${duration%:*}
-    hours=${minutes%:*}
-    minutes=${minutes##*:}
-    seconds=${duration##*:}
-    seconds=${seconds%.*}
- 
-    hours=$((hours*3600))
-    minutes=$((minutes*60))
- 
-    total=$(expr $hours + $minutes + $seconds)
-    number=$RANDOM
-    let "number %= $total"
- 
-
 
     echo "Generating thumbnail"
-    avconv -i "$1" -deinterlace -an -ss $number -t 00:00:01 -r 1 -y -vcodec mjpeg -f mjpeg "$targetDirectory/$targetBasename" 2>&1
+    avconv -i "$1"  -filter:v yadif -ss 0.5 -t 1 -f image2 -frames:v 1 "$targetDirectory/$targetBasename"
     echo "Finished thumbnail"
+
 
 
  
