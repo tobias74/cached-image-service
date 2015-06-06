@@ -265,6 +265,37 @@ class FlyImageService
     return $file->getBytes();
   }
 	
+  protected function correctRotation($im, $exif)
+  {
+    if (!empty($exif['Orientation'])) 
+    {
+      switch ($exif['Orientation']) 
+      {
+        case 3:
+            $angle = 180 ;
+            break;
+    
+        case 6:
+            $angle = -90;
+            break;
+    
+        case 8:
+            $angle = 90; 
+            break;
+        default:
+            $angle = 0;
+            break;
+      }   
+      
+      if ($angle !== 0)
+      {
+        $im = imagerotate($im, $angle, 0);
+      }
+    }    
+    
+    return $im;
+  }
+  
 	protected function createFly($imageIdUrl, $flySpec, $cacheOptions)
 	{
 		$timer = $this->profiler->startTimer('creating new fly-images');
@@ -310,6 +341,7 @@ class FlyImageService
           }
     
           $im = \imagecreatetruecolor($newWidth, $newHeight);
+          $im = $this->correctRotation($im, $exif);
           \imagecopyresampled($im,$origi,0,0,0,0, $newWidth, $newHeight, $originalWidth ,$originalHeight);
           
           
@@ -354,6 +386,7 @@ class FlyImageService
           
     
           $im = \imagecreatetruecolor($targetWidth, $targetHeight);
+          $im = $this->correctRotation($im, $exif);
           \imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
                   
           
@@ -409,6 +442,7 @@ class FlyImageService
           $sourceWidth = $targetWidth;
            
           $im = imagecreatetruecolor($targetWidth, $targetHeight);
+          $im = $this->correctRotation($im, $exif);
           imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
   
   
@@ -462,34 +496,9 @@ class FlyImageService
           $sourceWidth = $targetWidth;
            
           $im = \imagecreatetruecolor($maxWidth, $maxHeight);
+          $im = $this->correctRotation($im, $exif);
           \imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $maxWidth, $maxHeight, $sourceWidth, $sourceHeight);
   
-          if (!empty($exif['Orientation'])) 
-          {
-            switch ($exif['Orientation']) 
-            {
-              case 3:
-                  $angle = 180 ;
-                  break;
-          
-              case 6:
-                  $angle = -90;
-                  break;
-          
-              case 8:
-                  $angle = 90; 
-                  break;
-              default:
-                  $angle = 0;
-                  break;
-            }   
-            
-            if ($angle !== 0)
-            {
-              $im = imagerotate($im, $angle, 0);
-            }
-            
-          }    
         
   
           $newWidth = $flySpec->getMaximumWidth();
