@@ -303,6 +303,7 @@ class FlyImageService
     {
 			$origi = \imagecreatefromstring(\file_get_contents($imageIdUrl));
       $exif = \exif_read_data($imageIdUrl);
+      $origi = $this->correctRotation($origi, $exif);
     }
     catch (Exception $e)
     {
@@ -341,7 +342,6 @@ class FlyImageService
           }
     
           $im = \imagecreatetruecolor($newWidth, $newHeight);
-          $im = $this->correctRotation($im, $exif);
           \imagecopyresampled($im,$origi,0,0,0,0, $newWidth, $newHeight, $originalWidth ,$originalHeight);
           
           
@@ -386,7 +386,6 @@ class FlyImageService
           
     
           $im = \imagecreatetruecolor($targetWidth, $targetHeight);
-          $im = $this->correctRotation($im, $exif);
           \imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
                   
           
@@ -442,7 +441,6 @@ class FlyImageService
           $sourceWidth = $targetWidth;
            
           $im = imagecreatetruecolor($targetWidth, $targetHeight);
-          $im = $this->correctRotation($im, $exif);
           imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
   
   
@@ -496,7 +494,6 @@ class FlyImageService
           $sourceWidth = $targetWidth;
            
           $im = \imagecreatetruecolor($maxWidth, $maxHeight);
-          $im = $this->correctRotation($im, $exif);
           \imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $maxWidth, $maxHeight, $sourceWidth, $sourceHeight);
   
         
