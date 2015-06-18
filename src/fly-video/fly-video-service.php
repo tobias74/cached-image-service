@@ -106,7 +106,7 @@ class FlyVideoService
       if (isset($flyDocument['created']) && (($flyDocument['created'] + 3600*24*1) < time()) && ($flyDocument['transcoding_status'] != 'done'))
       {
         error_log('found broken fly, rescheduling transcoding.');
-        $this->collection->remove(array('_id'=> new MongoId($flyDocument['_id'])), array('justOne'=>true));
+        $this->collection->remove(array('_id'=> new \MongoId($flyDocument['_id'])), array('justOne'=>true));
         $flyDocument = $this->createAndMergeFly($videoIdUrl, $flySpec);
       }
 
