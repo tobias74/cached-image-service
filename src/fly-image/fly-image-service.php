@@ -302,8 +302,20 @@ class FlyImageService
     try
     {
 			$origi = \imagecreatefromstring(\file_get_contents($imageIdUrl));
-      $exif = \exif_read_data($imageIdUrl);
-      $origi = $this->correctRotation($origi, $exif);
+
+      try
+      {
+        $exif = \exif_read_data($imageIdUrl);
+        if ($exif)
+        {
+          $origi = $this->correctRotation($origi, $exif);
+        }
+      }
+      catch (\Exception $ee)
+      {
+        error_log('we did get an exception regarding the exif.');
+      }
+
     }
     catch (Exception $e)
     {
