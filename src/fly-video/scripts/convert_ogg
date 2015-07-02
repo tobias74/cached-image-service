@@ -11,7 +11,7 @@ then
 
 
     echo "Converting $filename to ogg"
-    avconv -i "$1" -acodec libvorbis -ac 2 -ab 192k -ar 44100 -b:v 2000k "$targetDirectory/$targetBasename"
+    avconv -i "$1" -vf yadif=auto:1 -acodec libvorbis -ac 2 -ab 192k -ar 44100 -b:v 2000k "$targetDirectory/$targetBasename"
     echo "Finished ogg"
  
 

@@ -11,7 +11,7 @@ then
      
  
     echo "Converting $filename to h264"
-    avconv -i "$1" -acodec libvo_aacenc -ab 192k -vcodec libx264 -level 21 -refs 2 -b:v 2000k -threads 0 "$targetDirectory/$targetBasename"
+    avconv -i "$1" -vf yadif=auto:1 -acodec libvo_aacenc -ab 192k -vcodec libx264 -level 21 -refs 2 -b:v 2000k -threads 0 "$targetDirectory/$targetBasename"
     echo "Finished h264"
 
 
